@@ -44,14 +44,17 @@ $(document).ready(function () {
     map.on("click", function (e) {
         $("#plotform").show();
     var marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
-    marker.bindPopup
-    document.querySelector("#newBtn").
-    onclick = function(){
-        map.removelayer(marker)
-    }
-    const{lat, lng} = e.latlng;
-    document.getElementById('lat').value = lat.ToFixed(6);
-    document.getElementById('lng').value = lng.ToFixed(6);
+        marker.bindPopup
+        $("#lat").val(e.latlng.lat);
+        $("#lng").val(e.latlng.lng);
+        document.querySelector("#newBtn").
+            onclick = function(){
+            if(markerstack.length >= 1){
+                markerstack.pop()
+                map.removelayer(marker)
+            }         
+        }
+        
     });
 
     $("#saveBtn").click(function (e) {
