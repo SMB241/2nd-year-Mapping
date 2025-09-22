@@ -41,27 +41,31 @@ $(document).ready(function () {
         $("#plotForm").hide();
     });
 
+    let marker;
+
     map.on("click", function (e) {
-        $("#plotform").show();
-    var marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map)
-        marker.bindPopup
+
+        if (marker) {
+            map.removeLayer(marker);
+        }
+
+        marker = L.marker([e.latlng.lat, e.latlng.lng]).addTo(map);
+
         $("#lat").val(e.latlng.lat);
         $("#lng").val(e.latlng.lng);
-        document.querySelector("#newBtn").
-            onclick = function(){
-            if(markerstack.length >= 1){
-                markerstack.pop()
-                map.removelayer(marker)
-            }         
-        }
-        
     });
 
-    $("#saveBtn").click(function (e) {
-        if(lat < 2)
-        $("#lat").val('');
-        $("#lng").val('');
-        $("#category").val(1);
-            alert("Please enter Valid Latitude, Longitude, and Category")
-    });
+
+    $("#saveBtn").click(function () {
+    let category = $("#category").val();
+
+    if (category == 1) {
+        alert("Please enter valid Latitude, Longitude, and Category");
+    }
+
+    $("#lat").val('');
+    $("#lng").val('');
+    $("#category").val(1);
+});
+
 });
