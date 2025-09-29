@@ -4,7 +4,7 @@ $(document).ready(function () {
 
     var tempMarker = null;
     var markers = [];                
-
+    var polylinepoints = [];
     function clearForm() {
         $("#lat").val('');
         $("#lng").val('');
@@ -87,8 +87,16 @@ $(document).ready(function () {
                             "<b>" + name.toUpperCase() + "</b><br>" + cat + "<br>" + desc,
                             { autoClose: false, closeOnClick: false }
                         ).openPopup();
-                            
+                             markers.push(marker);
+                             polylinepoints.push([lat, lng]);
                         });
+                        var polyline = L.polyline(polylinepoints).addTo(map);
+                        polyline.push(polylinepoints);
+
+                        var from = markers([[lat, lng]]);
+                        var to = markers([[lat, lng]]);
+                        var container = document.getElementById('distance');
+                        container.innerHTML = ("New Delhi to Mumbai - " + (from.distanceTo(to)).toFixed(0)/1000) + ' km';
                     } else {
                         alert("No locations found.");
                     }
@@ -96,6 +104,7 @@ $(document).ready(function () {
                 error: function () {
                     alert("Error fetching locations.");
                 }
+                
             });
         };
 
@@ -107,8 +116,12 @@ $(document).ready(function () {
         // Code clear routine here...
         clearBtn.onclick = function (e) {
             L.DomEvent.stopPropagation(e);
+            for(let i = 0;  i < markers.length; i++){
+                map.removeLayer(markers[i]);
 
-
+                
+            }
+            map.setView([10.669644, 122.948844], 17);
         };
         return div;
     };
