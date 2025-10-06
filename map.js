@@ -62,9 +62,9 @@ $(document).ready(function () {
                         }
 
                         let iconpath = '';
-                        if (cat === 'Gas Station') {
+                        if (cat === 'Gas') {
                             iconpath = 'assets/images/gas.png';
-                        } else {
+                        } else if (cat === 'EV'){
                             iconpath = 'assets/images/EV.png';
                         }
 
@@ -193,9 +193,9 @@ $(document).ready(function () {
                         }
 
                         let iconpath = '';
-                        if (category === 'Gas Station') {
+                        if (category === 'Gas') {
                             iconpath = 'assets/images/gas.png';
-                        } else {
+                        } else if (category === 'EV'){
                             iconpath = 'assets/images/EV.png';
                         }
 
