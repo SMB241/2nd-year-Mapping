@@ -46,6 +46,15 @@ body {
   border-radius: 4px;
 }
 
+#plotForm textarea {
+  width: 100%;
+  padding: 6px;
+  margin-top: 4px;
+  box-sizing: border-box;
+  border: 1px solid black;
+  border-radius: 4px;
+}
+
 #plotForm select {
   width: 100%;
   padding: 6px;
@@ -87,4 +96,11 @@ body {
 
 #plotForm .close-btn:hover {
   color: red;
+}
+
+.leaflet-bar.leaflet-control button {
+  display: block;
+  width: 100%;
+  margin-bottom: 5px;
+  cursor: pointer;
 }
