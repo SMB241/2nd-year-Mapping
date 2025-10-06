@@ -14,6 +14,58 @@ $(document).ready(function () {
     $("#description").val('');
   }
 
+  // Function to load markers from server and plot on map
+  function loadMarkers() {
+    $.ajax({
+      url: "forms/fetch_location.php",
+      type: "GET",
+      success: function (response) {
+        var res = JSON.parse(response);
+        if (res.status === "success") {
+          // Clear existing markers before adding new ones
+          markers.forEach(m => map.removeLayer(m));
+          markers = [];
+
+          res.data.forEach(function (loc) {
+            let lat = parseFloat(loc.latitude);
+            let lng = parseFloat(loc.longitude);
+            let desc = loc.description;
+            let cat = loc.category;
+            let name = loc.name;
+
+            if (tempMarker) {
+              map.removeLayer(tempMarker);
+              tempMarker = null;
+            }
+
+            let iconpath = '';
+            if (cat === 'Gas') {
+              iconpath = 'assets/images/gas.png';
+            } else if (cat === 'EV') {
+              iconpath = 'assets/images/EV.png';
+            }
+
+            var customIcon = L.icon({
+              iconUrl: iconpath,
+              iconSize: [50, 50],
+              iconAnchor: [25, 50],
+              popupAnchor: [0, -50]
+            });
+            var marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
+            marker.bindPopup(
+              "<b>" + name.toUpperCase() + "</b><br>" + cat + "<br>" + desc,
+              { autoClose: false, closeOnClick: false }
+            );
+            markers.push(marker);
+          });
+        }
+      },
+      error: function () {
+        alert("Error fetching locations.");
+      }
+    });
+  }
+
   var customControl = L.control({ position: 'topright' });
   customControl.onAdd = function () {
     var div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
@@ -38,59 +90,7 @@ $(document).ready(function () {
       $("#plotForm").show();
     };
 
-    var postBtn = L.DomUtil.create('button', '', div);
-    postBtn.innerHTML = "Post";
-    postBtn.style.display = "block";
-    postBtn.style.width = "100%";
-    postBtn.onclick = function (e) {
-      L.DomEvent.stopPropagation(e);
-      $.ajax({
-        url: "forms/fetch_location.php",
-        type: "GET",
-        success: function (response) {
-          var res = JSON.parse(response);
-          if (res.status === "success") {
-            res.data.forEach(function (loc) {
-              let lat = parseFloat(loc.latitude);
-              let lng = parseFloat(loc.longitude);
-              let desc = loc.description;
-              let cat = loc.category;
-              let name = loc.name;
-
-              if (tempMarker) {
-                map.removeLayer(tempMarker);
-                tempMarker = null;
-              }
-
-              let iconpath = '';
-              if (cat === 'Gas') {
-                iconpath = 'assets/images/gas.png';
-              } else if (cat === 'EV') {
-                iconpath = 'assets/images/EV.png';
-              }
-
-              var customIcon = L.icon({
-                iconUrl: iconpath,
-                iconSize: [50, 50],
-                iconAnchor: [25, 50],
-                popupAnchor: [0, -50]
-              });
-              var marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-              marker.bindPopup(
-                "<b>" + name.toUpperCase() + "</b><br>" + cat + "<br>" + desc,
-                { autoClose: false, closeOnClick: false }
-              );
-              markers.push(marker);
-            });
-          } else {
-            alert("No locations found.");
-          }
-        },
-        error: function () {
-          alert("Error fetching locations.");
-        }
-      });
-    };
+    // Removed postBtn as markers are loaded automatically on page load
 
     var clearBtn = L.DomUtil.create('button', '', div);
     clearBtn.innerHTML = "Clear";
@@ -115,70 +115,64 @@ $(document).ready(function () {
       L.DomEvent.stopPropagation(e);
 
       if (markers.length === 0) {
-        alert("No destination markers available. Please 'Post' markers first.");
-        return;
+        // Automatically load markers if none loaded yet
+        loadMarkers();
       }
 
-      alert("Click on the map to select your CURRENT LOCATION.");
       map.getContainer().style.cursor = "crosshair";
 
       // Disable plotting marker clicks while selecting route
       map.off("click", mapClickHandler);
 
-      function onMapClick(e) {
-        const fromLatLng = e.latlng;
+      let fromLatLng = null;
+      let toLatLng = null;
+
+      function onMapClickStart(e) {
+        fromLatLng = e.latlng;
         map.getContainer().style.cursor = "";
-        map.off("click", onMapClick);
 
-        alert("Now click on the MARKER of your DESTINATION.");
+        // Remove this start click handler
+        map.off("click", onMapClickStart);
 
-        // Add click listeners to all markers for destination selection
-        function onMarkerClick(e) {
-          const toLatLng = e.latlng;
-
-          // Remove listener from all markers
-          markers.forEach(m => m.off("click", onMarkerClick));
-
-          // Remove old route if exists
-          if (routeControl) {
-            map.removeControl(routeControl);
-          }
-
-          // Draw route with leaflet-routing-machine (make sure it's included in your project)
-          routeControl = L.Routing.control({
-            waypoints: [
-              L.latLng(fromLatLng.lat, fromLatLng.lng),
-              L.latLng(toLatLng.lat, toLatLng.lng)
-            ],
-            routeWhileDragging: false,
-            draggableWaypoints: false,
-            addWaypoints: false,
-            createMarker: () => null
-          }).addTo(map);
-
-          alert("Route displayed!");
-
-          // Re-enable normal map click handler
-          map.on("click", mapClickHandler);
-        }
-
-        markers.forEach(marker => marker.on("click", onMarkerClick));
+        // Now wait for destination click anywhere on map
+        map.on("click", onMapClickDestination);
       }
 
-      map.on("click", onMapClick);
+      function onMapClickDestination(e) {
+        toLatLng = e.latlng;
+
+        // Remove this destination click handler
+        map.off("click", onMapClickDestination);
+
+        // Remove old route if exists
+        if (routeControl) {
+          map.removeControl(routeControl);
+          routeControl = null;
+        }
+
+        // Draw route with leaflet-routing-machine
+        routeControl = L.Routing.control({
+          waypoints: [
+            L.latLng(fromLatLng.lat, fromLatLng.lng),
+            L.latLng(toLatLng.lat, toLatLng.lng)
+          ],
+          routeWhileDragging: false,
+          draggableWaypoints: false,
+          addWaypoints: false,
+          createMarker: () => null
+        }).addTo(map);
+
+        // Re-enable normal map click handler
+        map.on("click", mapClickHandler);
+      }
+
+      // Start by waiting for the first click on map for starting point
+      map.on("click", onMapClickStart);
     };
 
     return div;
   };
   customControl.addTo(map);
-
-  function clearForm() {
-    $("#lat").val('');
-    $("#lng").val('');
-    $("#category").val('');
-    $("#name").val('');
-    $("#description").val('');
-  }
 
   $("#newBtn").click(function (e) {
     e.stopPropagation();
@@ -295,4 +289,7 @@ $(document).ready(function () {
       alert("Please enter valid latitude, longitude, and category.");
     }
   });
+
+  // Load markers immediately on page load, no need to click 'Post'
+  loadMarkers();
 });
