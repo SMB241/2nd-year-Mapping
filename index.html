@@ -2,15 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>DATA STRUCTURE AND ALGORITHMS MAPPING</title>
+  <title>Data Structures and Algorithms Mapping</title>
+
+  <!-- Leaflet core -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+  <!-- Leaflet Routing Machine -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+  />
+  <script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  <!-- Custom CSS -->
   <link rel="stylesheet" href="css/mystyle.css" />
 </head>
 <body>
   <h2>Plot Location</h2>
   <div id="map"></div>
 
-  <!-- Plot Form (hidden by default) -->
+  <!-- Plot Form -->
   <div id="plotForm">
     <span id="closeForm" class="close-btn">&times;</span>
     <h3>Plot Marker</h3>
@@ -20,23 +35,21 @@
     <input type="text" id="lng" />
     <label>Category:</label>
     <select id="category">
-      <option value="1">- Select Category -</option>
-      <option value="Restaurant">Restaurant</option>
-      <option value="Church">Church</option>
-      <option value="Mall">Mall</option>
-      <option value="School">School</option>
-      <option value="Park">Park</option>
+      <option value="">- Select Category -</option>
+      <option value="Gas">Gas</option>
+      <option value="EV">EV</option>
     </select>
+    <label>Name:</label>
+    <input type="text" id="name" />
+    <label>Description:</label>
+    <textarea id="description" rows="5"></textarea>
     <div class="form-buttons">
       <button id="newBtn">New</button>
       <button id="saveBtn">Save</button>
     </div>
   </div>
 
-  <!-- Scripts -->
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <!-- Custom JS -->
   <script src="js/map.js"></script>
 </body>
 </html>
-
