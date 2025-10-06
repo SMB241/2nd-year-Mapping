@@ -114,15 +114,10 @@ $(document).ready(function () {
     showRouteBtn.onclick = function (e) {
       L.DomEvent.stopPropagation(e);
 
-      if (markers.length === 0) {
-        alert("No destination markers available. Please 'Post' markers first.");
-        return;
-      }
 
-      alert("Click on the map to select your CURRENT LOCATION.");
       map.getContainer().style.cursor = "crosshair";
 
-      // Disable plotting marker clicks while selecting route
+      // Disable normal map clicks for plotting marker during route selection
       map.off("click", mapClickHandler);
 
       function onMapClick(e) {
@@ -130,21 +125,17 @@ $(document).ready(function () {
         map.getContainer().style.cursor = "";
         map.off("click", onMapClick);
 
-        alert("Now click on the MARKER of your DESTINATION.");
+    
 
-        // Add click listeners to all markers for destination selection
-        function onMarkerClick(e) {
-          const toLatLng = e.latlng;
+        function onDestinationClick(e2) {
+          const toLatLng = e2.latlng;
 
-          // Remove listener from all markers
-          markers.forEach(m => m.off("click", onMarkerClick));
+          map.off("click", onDestinationClick);
 
-          // Remove old route if exists
           if (routeControl) {
             map.removeControl(routeControl);
           }
 
-          // Draw route with leaflet-routing-machine (make sure it's included in your project)
           routeControl = L.Routing.control({
             waypoints: [
               L.latLng(fromLatLng.lat, fromLatLng.lng),
@@ -162,7 +153,7 @@ $(document).ready(function () {
           map.on("click", mapClickHandler);
         }
 
-        markers.forEach(marker => marker.on("click", onMarkerClick));
+        map.on("click", onDestinationClick);
       }
 
       map.on("click", onMapClick);
