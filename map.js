@@ -3,8 +3,8 @@ $(document).ready(function () {
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
 
     var tempMarker = null;
-    var markers = [];                
-    var polylinepoints = [];
+    var markers = [];           
+
     function clearForm() {
         $("#lat").val('');
         $("#lng").val('');
@@ -62,16 +62,10 @@ $(document).ready(function () {
                         }
 
                         let iconpath = '';
-                        if (cat === 'Restaurant') {
-                            iconpath = 'assets/images/restaurant.png';
-                        } else if (cat === 'Church') {
-                            iconpath = 'assets/images/church.png';
-                        } else if (cat === 'Mall') {
-                            iconpath = 'assets/images/mall.png';
-                        } else if (cat === 'School') {
-                            iconpath = 'assets/images/school.png';
+                        if (cat === 'Gas Station') {
+                            iconpath = 'assets/images/gas.png';
                         } else {
-                            iconpath = 'assets/images/park.png';
+                            iconpath = 'assets/images/EV.png';
                         }
 
                         var customIcon = L.icon({
@@ -80,23 +74,13 @@ $(document).ready(function () {
                             iconAnchor: [25, 50],
                             popupAnchor: [0, -50]
                         });
-
                         var marker = L.marker([lat, lng], { icon: customIcon }).addTo(map);
-
                         marker.bindPopup(
                             "<b>" + name.toUpperCase() + "</b><br>" + cat + "<br>" + desc,
                             { autoClose: false, closeOnClick: false }
                         ).openPopup();
-                             markers.push(marker);
-                             polylinepoints.push([lat, lng]);
+                        markers.push(marker);                       
                         });
-                        var polyline = L.polyline(polylinepoints).addTo(map);
-                        polyline.push(polylinepoints);
-
-                        var from = markers([[lat, lng]]);
-                        var to = markers([[lat, lng]]);
-                        var container = document.getElementById('distance');
-                        container.innerHTML = ("New Delhi to Mumbai - " + (from.distanceTo(to)).toFixed(0)/1000) + ' km';
                     } else {
                         alert("No locations found.");
                     }
@@ -104,7 +88,6 @@ $(document).ready(function () {
                 error: function () {
                     alert("Error fetching locations.");
                 }
-                
             });
         };
 
@@ -116,12 +99,17 @@ $(document).ready(function () {
         // Code clear routine here...
         clearBtn.onclick = function (e) {
             L.DomEvent.stopPropagation(e);
-            for(let i = 0;  i < markers.length; i++){
-                map.removeLayer(markers[i]);
-
-                
-            }
             map.setView([10.669644, 122.948844], 17);
+            for(let i = 0; i<markers.length; i++){
+                map.removeLayer(markers[i]);
+            }
+            markers=[];
+             for(var i = 0; i<poly.length; i++){
+                map.removeLayer(poly[i]);
+            }
+            poly=[];
+    
+           
         };
         return div;
     };
@@ -205,16 +193,10 @@ $(document).ready(function () {
                         }
 
                         let iconpath = '';
-                        if (category === 'Restaurant') {
-                            iconpath = 'assets/images/restaurant.png';
-                        } else if (category === 'Church') {
-                            iconpath = 'assets/images/church.png';
-                        } else if (category === 'Mall') {
-                            iconpath = 'assets/images/mall.png';
-                        } else if (category === 'School') {
-                            iconpath = 'assets/images/school.png';
+                        if (category === 'Gas Station') {
+                            iconpath = 'assets/images/gas.png';
                         } else {
-                            iconpath = 'assets/images/park.png';
+                            iconpath = 'assets/images/EV.png';
                         }
 
                         var customIcon = L.icon({
