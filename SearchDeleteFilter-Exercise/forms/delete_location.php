@@ -1,0 +1,37 @@
+<?php
+    $host = "localhost";   
+    $user = "root";        
+    $pass = "";            
+    $db   = "mappinggproject"; 
+    $conn = new mysqli($host, $user, $pass, $db);
+
+
+     if ($conn->connect_error) {
+        die(json_encode([
+            "status" => "error",  
+            "message" => "DB connection failed: " . $conn->connect_error 
+        ]));
+    }
+
+
+    $markerID = isset($_POST['markerID']) ? $_POST['markerID'] : null;
+
+    
+    $searchID = $conn->prepare("DELETE FROM locationtagging WHERE id = ?");
+    $searchID -> bind_param("i", $markerID);
+    
+    if($searchID->execute()){
+        echo json_encode([
+            "status" => "success",
+            "message" => "Location Deleted"
+        ]);
+    }else{
+         echo json_encode([
+         "status" => "error",
+         "message" => "Deletion failed."
+          ]);
+    }
+
+$conn->close();
+
+?>
