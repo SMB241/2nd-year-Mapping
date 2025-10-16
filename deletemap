@@ -54,7 +54,7 @@ $(document).ready(function () {
         postBtn.style.width = "100%";
         postBtn.onclick = function (e) {
             L.DomEvent.stopPropagation(e);
-                    markers.forEach(m => map.removeLayer(m));
+            markers.forEach(m => map.removeLayer(m));
             polygons.forEach(p => map.removeLayer(p));
             distanceLabels.forEach(l => map.removeLayer(l));
             markers = [];
@@ -142,7 +142,6 @@ $(document).ready(function () {
         clearBtn.style.width = "100%";
         clearBtn.onclick = function (e) {
             L.DomEvent.stopPropagation(e);
-
             markers.forEach(m => map.removeLayer(m));
             markers = [];
             latlngs = [];
@@ -159,6 +158,8 @@ $(document).ready(function () {
             }
 
             clearForm();
+            $("#searchInput").val("")
+               $('#deleteBtn').prop('disabled', true);
             map.setView([10.669644, 122.948844], 17);
         };
 
@@ -292,15 +293,14 @@ $(document).ready(function () {
         var query = $("#searchInput").val().trim().toLowerCase();
         if (query === "") {
             alert("Please enter a location name.");
-             $('#deleteBtn').prop('disabled', true);
+              $('#deleteBtn').prop('disabled', true);
             return;  
         }
-
+         
         if (markerMap[query]) {
             var marker = markerMap[query].marker;  
             var latlng = marker.getLatLng();
-            map.removeLayer(latlng);
-            $('#deleteBtn').prop('disabled', false);
+             $('#deleteBtn').prop('disabled', false);
             map.flyTo(latlng, 18, {
                 animate: true,       
                 duration: 1.5        
@@ -309,17 +309,16 @@ $(document).ready(function () {
             marker.openPopup();
         } else {
             alert("Location not found.");
-            $('#deleteBtn').prop('disabled', true);
         }
     });
 
     $("#deleteBtn").click(function () {
-          const name = $("#searchInput").val();
-        if (name) {
+        const location = $("#searchInput").val();
+         if (location) {
             $.ajax({
                 url: "forms/delete_location.php", 
                 type: "POST",
-                data: { name: name },
+                data: { name: location },
                 success: function (response) {
                     alert(response); 
                 },
@@ -330,20 +329,19 @@ $(document).ready(function () {
         } else {
             alert("Please enter a name.");
         }
+        // -- B O N U S   R O U N D --
+
         // .. Your coding journey starts here ..  
-        // .. Also, mplement the delete_location code inside the forms folder ..  
         // .. You are FREE to add or modify the given code ..  
         // .. You may use the internet, but accessing AI-related websites is strictly prohibited.
               // (0 score for violator)
 
         // .. Instructions ..  
 
-        // 1.) Write your name, date, and section in a 1/8 crosswise format (per group).  
-        // 2.) Watch the "SearchDeleteDemo" video.  
-        // 3.) Please communicate with your group quietly to avoid disturbing others.
-        // 4.) One-time checking only — all group members must produce identical output.  
-        // 5.) Use the `id` field from the `locationtagging` table as a reference to delete a location record.  
-        // 6.) When finished, please remain seated and continue working on your project, or quietly leave the room.
+        // 1.) Write your name, date, and section in a 1/8 crosswise format (per group).   
+        // 2.) Please communicate with your group quietly to avoid disturbing others.
+        // 3.) One-time checking only — all group members must produce identical output.   
+        // 4.) When finished, please remain seated and continue working on your project, or quietly leave the room.
 
         // Do not erase the provided comment lines.
         // Read all instructions carefully before asking a question.
@@ -351,6 +349,29 @@ $(document).ready(function () {
         // Finished or not – NO INTERACTION with other groups. (-10 pts for violator)
         // NO ROAMING AROUND – stay in your designated area. (-10 pts for violator)
         // Avoid making UNNECESSARY NOISE. (-10 pts for violator)
+
+        // DURATION = 2 Hours
+        // By 3:30, stay outside and wait until your group is called for checking."
+
+
+        // ----------------------------------------------------------
+        // [1] DELETE Routine - using id field (+1.5 pts final grade)
+
+        // .. get id
+        // .. code backend processing - delete_location.php inside forms folder
+    });
+
+    $('#filterCategory').select2({
+        placeholder: 'Select category...',
+        allowClear: true,
+        width: '400px'
+    });
+
+    $('#filterCategory').on('change', function() {
+        // [2] MULTI-FILTER SEARCH Routine (+2 pts final grade)
+
+        // .. get selected options
+        // .. code backend processing - filter_location.php inside forms folder
     });
 
     $("#searchInput").keypress(function (e) {
