@@ -10,11 +10,11 @@ $(document).ready(function () {
     }).addTo(map);
 
     var tempMarker = null;
-    var markers = [];         
-    var latlngs = [];         
-    var polygons = [];        
-    var distanceLabels = [];  
-    var markerMap = {};       
+    var markers = [];
+    var latlngs = [];
+    var polygons = [];
+    var distanceLabels = [];
+    var markerMap = {};
 
     function clearForm() {
         $("#lat").val('');
@@ -22,6 +22,11 @@ $(document).ready(function () {
         $("#category").val('');
         $("#name").val('');
         $("#description").val('');
+    }
+
+    function clearMarkers() {
+        markers.forEach(m => map.removeLayer(m));
+        markers = [];
     }
 
     var customControl = L.control({ position: 'topright' });
@@ -159,7 +164,7 @@ $(document).ready(function () {
 
             clearForm();
             $("#searchInput").val("")
-               $('#deleteBtn').prop('disabled', true);
+            $('#deleteBtn').prop('disabled', true);
             map.setView([10.669644, 122.948844], 17);
         };
 
@@ -272,7 +277,7 @@ $(document).ready(function () {
                         ).openPopup();
 
                         markers.push(marker);
-                        markerMap[name.toLowerCase()] = marker; 
+                        markerMap[name.toLowerCase()] = { marker: marker };
 
                         $("#plotForm").hide();
                         alert("Saved successfully!");
@@ -293,72 +298,53 @@ $(document).ready(function () {
         var query = $("#searchInput").val().trim().toLowerCase();
         if (query === "") {
             alert("Please enter a location name.");
-              $('#deleteBtn').prop('disabled', true);
-            return;  
+            $('#deleteBtn').prop('disabled', true);
+            return;
         }
-         
+
         if (markerMap[query]) {
-            var marker = markerMap[query].marker;  
+            var marker = markerMap[query].marker;
             var latlng = marker.getLatLng();
-             $('#deleteBtn').prop('disabled', false);
+            $('#deleteBtn').prop('disabled', false);
             map.flyTo(latlng, 18, {
-                animate: true,       
-                duration: 1.5        
+                animate: true,
+                duration: 1.5
             });
 
             marker.openPopup();
         } else {
             alert("Location not found.");
+            $('#deleteBtn').prop('disabled', true);
         }
     });
 
     $("#deleteBtn").click(function () {
-        const location = $("#searchInput").val();
-         if (location) {
+        const location = $("#searchInput").val().trim().toLowerCase();
+        if (location && markerMap[location]) {
+            const id = markerMap[location].id;
+            if (!id) {
+                alert("Cannot delete: ID not found for this location.");
+                return;
+            }
             $.ajax({
-                url: "forms/delete_location.php", 
+                url: "forms/delete_location.php",
                 type: "POST",
-                data: { name: location },
+                data: { id: id },
                 success: function (response) {
-                    alert(response); 
+                    alert(response);
+                    // Remove marker from map and arrays after deletion
+                    map.removeLayer(markerMap[location].marker);
+                    delete markerMap[location];
+                    markers = markers.filter(m => m !== markerMap[location]?.marker);
+                    $('#deleteBtn').prop('disabled', true);
                 },
                 error: function () {
                     alert("An error occurred while processing your request.");
                 }
             });
         } else {
-            alert("Please enter a name.");
+            alert("Please enter a valid location name from the list.");
         }
-        // -- B O N U S   R O U N D --
-
-        // .. Your coding journey starts here ..  
-        // .. You are FREE to add or modify the given code ..  
-        // .. You may use the internet, but accessing AI-related websites is strictly prohibited.
-              // (0 score for violator)
-
-        // .. Instructions ..  
-
-        // 1.) Write your name, date, and section in a 1/8 crosswise format (per group).   
-        // 2.) Please communicate with your group quietly to avoid disturbing others.
-        // 3.) One-time checking only — all group members must produce identical output.   
-        // 4.) When finished, please remain seated and continue working on your project, or quietly leave the room.
-
-        // Do not erase the provided comment lines.
-        // Read all instructions carefully before asking a question.
-
-        // Finished or not – NO INTERACTION with other groups. (-10 pts for violator)
-        // NO ROAMING AROUND – stay in your designated area. (-10 pts for violator)
-        // Avoid making UNNECESSARY NOISE. (-10 pts for violator)
-
-        // DURATION = 2 Hours
-        // By 3:30, stay outside and wait until your group is called for checking."
-
-
-        // ----------------------------------------------------------
-        // [1] DELETE Routine - using id field (+1.5 pts final grade)
-
-        // .. get id
-        // .. code backend processing - delete_location.php inside forms folder
     });
 
     $('#filterCategory').select2({
@@ -367,12 +353,93 @@ $(document).ready(function () {
         width: '400px'
     });
 
-    $('#filterCategory').on('change', function() {
-        // [2] MULTI-FILTER SEARCH Routine (+2 pts final grade)
+    $('#filterCategory').on('change', function () {
+    const filter = $(this).val() || "All";
 
-        // .. get selected options
-        // .. code backend processing - filter_location.php inside forms folder
+    // Clear existing markers, polygons, and distance labels
+    markers.forEach(m => map.removeLayer(m));
+    markers = [];
+
+    polygons.forEach(p => map.removeLayer(p));
+    polygons = [];
+
+    distanceLabels.forEach(l => map.removeLayer(l));
+    distanceLabels = [];
+
+    $.ajax({
+        url: "forms/fetch_location.php",
+        type: "GET",
+        success: function (response) {
+            const res = JSON.parse(response);
+            if (res.status === "success") {
+                let latlngs = []; // To store points for polyline
+
+                res.data.forEach(loc => {
+                    const { latitude, longitude, category, name, description, id } = loc;
+
+                    // If filtering and category doesn't match, skip
+                    if (filter !== "All" && category !== filter) return;
+
+                    // Determine icon path
+                    let iconpath = '';
+                    if (category === 'Restaurant') {
+                        iconpath = 'assets/images/restaurant.png';
+                    } else if (category === 'Church') {
+                        iconpath = 'assets/images/church.png';
+                    } else if (category === 'Mall') {
+                        iconpath = 'assets/images/mall.png';
+                    } else if (category === 'School') {
+                        iconpath = 'assets/images/school.png';
+                    } else if (category === 'Gas') {
+                        iconpath = 'assets/images/gas.png';
+                    } else if (category === 'EV') {
+                        iconpath = 'assets/images/EV.png';
+                    } else {
+                        iconpath = 'assets/images/park.png';
+                    }
+
+                    const customIcon = L.icon({
+                        iconUrl: iconpath,
+                        iconSize: [50, 50],
+                        iconAnchor: [25, 50],
+                        popupAnchor: [0, -50],
+                    });
+
+                    const marker = L.marker([latitude, longitude], { icon: customIcon })
+                        .addTo(map)
+                        .bindPopup(`<b>${name.toUpperCase()}</b><br>${category}<br>${description}`);
+
+                    markers.push(marker);
+                    markerMap[name.toLowerCase()] = { marker: marker, id: id };
+
+                    // Collect latlngs for polyline if category matches
+                    latlngs.push([latitude, longitude]);
+                });
+
+                // Draw polyline connecting all filtered points (if 2 or more)
+                if (latlngs.length >= 2) {
+                    const polyline = L.polyline(latlngs, {
+                        color: 'blue',
+                        weight: 3,
+                        fillColor: 'lightblue',
+                        fillOpacity: 0.3,
+                    }).addTo(map);
+
+                    polygons.push(polyline);
+
+                    // Zoom map to fit all filtered markers
+                    map.fitBounds(polyline.getBounds());
+                }
+            } else {
+                alert("No locations found.");
+            }
+        },
+        error: function () {
+            alert("⚠️ Error fetching locations.");
+        },
     });
+});
+
 
     $("#searchInput").keypress(function (e) {
         if (e.which === 13) {
