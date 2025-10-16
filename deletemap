@@ -353,8 +353,11 @@ $(document).ready(function () {
         width: '400px'
     });
 
-    $('#filterCategory').on('change', function () {
-    const filter = $(this).val() || "All";
+$('#filterCategory').on('change', function () {
+    const filters = $(this).val() || []; // array of selected categories
+
+    // If no category selected, treat as "All"
+    const activeFilters = filters.length === 0 ? null : filters;
 
     // Clear existing markers, polygons, and distance labels
     markers.forEach(m => map.removeLayer(m));
@@ -377,8 +380,8 @@ $(document).ready(function () {
                 res.data.forEach(loc => {
                     const { latitude, longitude, category, name, description, id } = loc;
 
-                    // If filtering and category doesn't match, skip
-                    if (filter !== "All" && category !== filter) return;
+                    // If filters exist and category not in filters, skip
+                    if (activeFilters && !activeFilters.includes(category)) return;
 
                     // Determine icon path
                     let iconpath = '';
@@ -390,10 +393,6 @@ $(document).ready(function () {
                         iconpath = 'assets/images/mall.png';
                     } else if (category === 'School') {
                         iconpath = 'assets/images/school.png';
-                    } else if (category === 'Gas') {
-                        iconpath = 'assets/images/gas.png';
-                    } else if (category === 'EV') {
-                        iconpath = 'assets/images/EV.png';
                     } else {
                         iconpath = 'assets/images/park.png';
                     }
@@ -412,11 +411,10 @@ $(document).ready(function () {
                     markers.push(marker);
                     markerMap[name.toLowerCase()] = { marker: marker, id: id };
 
-                    // Collect latlngs for polyline if category matches
                     latlngs.push([latitude, longitude]);
                 });
 
-                // Draw polyline connecting all filtered points (if 2 or more)
+                // Draw polyline if 2+ points
                 if (latlngs.length >= 2) {
                     const polyline = L.polyline(latlngs, {
                         color: 'blue',
@@ -426,8 +424,6 @@ $(document).ready(function () {
                     }).addTo(map);
 
                     polygons.push(polyline);
-
-                    // Zoom map to fit all filtered markers
                     map.fitBounds(polyline.getBounds());
                 }
             } else {
@@ -439,6 +435,7 @@ $(document).ready(function () {
         },
     });
 });
+
 
 
     $("#searchInput").keypress(function (e) {
