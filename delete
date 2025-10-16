@@ -1,29 +1,35 @@
 <?php
-    $host = "localhost";
-    $user = "root";
-    $pass = "";
-    $db   = "mappingproject";
+$host = "localhost";
+$user = "root";
+$pass = "";
+$db   = "mappingproject";
 
-    $conn = new mysqli($host, $user, $pass, $db);
+$conn = new mysqli($host, $user, $pass, $db);
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
-if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['name'])) {
-    $name = $conn->real_escape_string($_POST['name']); 
 
-    $query = "SELECT * FROM locationtagging WHERE name = '$name'";
+if ($_SERVER["REQUEST_METHOD"] === "POST" && isset($_POST['name'])) {
+    $location = $conn->real_escape_string($_POST['name']); 
+
+    // Find ID by name
+    $query = "SELECT id FROM locationtagging WHERE name = '$location' LIMIT 1";
     $result = $conn->query($query);
 
     if ($result->num_rows > 0) {
-        $deleteQuery = "DELETE FROM locationtagging WHERE name = '$name'";
+        $row = $result->fetch_assoc();
+        $id = intval($row['id']); // Safely get ID
+
+        // Now delete using the ID
+        $deleteQuery = "DELETE FROM locationtagging WHERE id = $id";
         if ($conn->query($deleteQuery) === TRUE) {
-            echo " successfully deleted.";
+            echo "Location '$location' (ID: $id) successfully deleted.";
         } else {
-            echo "Error deleting name: " . $conn->error;
+            echo "Error deleting: " . $conn->error;
         }
     } else {
-        echo "Name not found in the database.";
+        echo "Location '$location' not found in the database.";
     }
 } else {
     echo "Invalid request.";
